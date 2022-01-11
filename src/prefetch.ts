@@ -4,10 +4,10 @@
  */
 
 import type { Entry, ImportEntryOpts } from 'import-html-entry';
+import type { AppMetadata, PrefetchStrategy } from './interfaces';
 import { importEntry } from 'import-html-entry';
 import { isFunction } from 'lodash';
 import { getAppStatus, getMountedApps, NOT_LOADED } from 'single-spa';
-import type { AppMetadata, PrefetchStrategy } from './interfaces';
 
 declare global {
   interface NetworkInformation {
