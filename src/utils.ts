@@ -200,6 +200,7 @@ export function performanceMeasure(measureName: string, markName: string) {
   }
 }
 
+// 实验特性 当 experimentalStyleIsolation 被设置为 true 时，qiankun 会改写子应用所添加的样式为所有样式规则增加一个特殊的选择器规则来限定其影响范围
 export function isEnableScopedCSS(sandbox: FrameworkConfiguration['sandbox']) {
   if (typeof sandbox !== 'object') {
     return false;
