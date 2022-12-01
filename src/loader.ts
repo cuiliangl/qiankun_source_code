@@ -269,7 +269,7 @@ export async function loadApp<T extends ObjectType>(
 
   const markName = `[qiankun] App ${appInstanceId} Loading`;
   if (process.env.NODE_ENV === 'development') {
-    // TODO
+    // TODO 性能收集
     performanceMark(markName);
   }
 
@@ -361,6 +361,7 @@ export async function loadApp<T extends ObjectType>(
       excludeAssetFilter,
       global,
     );
+
     // 用沙箱的代理对象作为接下来使用的全局对象
     global = sandboxContainer.instance.proxy as typeof window;
 

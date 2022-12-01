@@ -74,13 +74,14 @@ export function registerMicroApps<T extends ObjectType>(
         loader(true);
         await frameworkStartedDefer.promise;
 
-        const { mount, ...otherMicroAppConfigs } =
-          /**
-           * app 配置信息
-           * start 配置信息
-           * start lifeCycles
-           */
-          (await loadApp({ name, props, ...appConfig }, frameworkConfiguration, lifeCycles))(); // 返回一个函数
+        /**
+         * app 配置信息
+         * start 配置信息
+         * start lifeCycles
+         */
+        const { mount, ...otherMicroAppConfigs } = (
+          await loadApp({ name, props, ...appConfig }, frameworkConfiguration, lifeCycles)
+        )(); // 返回一个函数
 
         return {
           mount: [async () => loader(true), ...toArray(mount), async () => loader(false)],
@@ -224,14 +225,14 @@ export function start(opts: FrameworkConfiguration = {}) {
     sandbox,
     singular,
     urlRerouteOnly = defaultUrlRerouteOnly,
-    ...importEntryOpts // {}
+    ...importEntryOpts // {} importHtmlEntry 的参数：1. fetch; 2. getPublicPath; 3. getTemplate; 4. excludeAssetFilter
   } = frameworkConfiguration;
 
   if (prefetch) {
     /**
      * microApps 所有注册过的app
      */
-    // 判断每个子应用的加载时机
+    // 设置每个子应用的加载时机：1. 同时加载；2. 第一个mounted后加载；3. 指定的子应用加载；4. 自定义加载方法
     doPrefetchStrategy(microApps, prefetch, importEntryOpts);
   }
 

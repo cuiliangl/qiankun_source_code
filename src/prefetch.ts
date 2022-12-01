@@ -55,6 +55,7 @@ function prefetch(entry: Entry, opts?: ImportEntryOpts): void {
   // 浏览器在空闲时调用
   requestIdleCallback(async () => {
     const { getExternalScripts, getExternalStyleSheets } = await importEntry(entry, opts);
+
     // 下次空闲时获取js css
     requestIdleCallback(getExternalStyleSheets);
     requestIdleCallback(getExternalScripts);
@@ -63,20 +64,23 @@ function prefetch(entry: Entry, opts?: ImportEntryOpts): void {
 
 // 加载完第一个子应用后加载其他子应用
 function prefetchAfterFirstMounted(apps: AppMetadata[], opts?: ImportEntryOpts): void {
+  // 监听 single-spa 提供的事件
   window.addEventListener('single-spa:first-mount', function listener() {
     // 第一个子应用加载完后 过滤出没有加载过的子应用（bootstrap都没执行的）
     const notLoadedApps = apps.filter((app) => getAppStatus(app.name) === NOT_LOADED);
 
     if (process.env.NODE_ENV === 'development') {
-      // 获取已经Mounted过的子应用
+      // 获取已经加载过的子应用
       const mountedApps = getMountedApps();
       console.log(`[qiankun] prefetch starting after ${mountedApps} mounted...`, notLoadedApps);
     }
 
-    // 加载其他子应用 prefetch 其实就是加载 静态资源  所以 子应用的boostrap只会执行一次。
+    // 加载其他子应用 prefetch 其实就是加载静态资源  所以 子应用的 boostrap 只会执行一次。
+    // entry：资源入口地址
+    // opts： 默认{}
     notLoadedApps.forEach(({ entry }) => prefetch(entry, opts));
 
-    // 移除监听
+    // 执行完成后移除监听
     window.removeEventListener('single-spa:first-mount', listener);
   });
 }
@@ -103,10 +107,11 @@ export function doPrefetchStrategy(
 ) {
   const appsName2Apps = (names: string[]): AppMetadata[] => apps.filter((app) => names.includes(app.name));
 
-  // 指定第一个子应用 mounted 之后开始加载的子应用
+  // prefetchStrategy: string[]，指定第一个子应用 mounted 之后开始加载指定的子应用
   if (Array.isArray(prefetchStrategy)) {
     prefetchAfterFirstMounted(appsName2Apps(prefetchStrategy as string[]), importEntryOpts);
   } else if (isFunction(prefetchStrategy)) {
+    // 自定义资源的加载时机
     // 自定义子应用的加载时机
     (async () => {
       // critical rendering apps would be prefetch as earlier as possible
@@ -122,7 +127,7 @@ export function doPrefetchStrategy(
         break;
 
       case 'all':
-        // 主应用加载完后立即加载所有子应用的静态资源
+        // 主应用 start 后立即加载所有子应用的静态资源
         prefetchImmediately(apps, importEntryOpts);
         break;
 
