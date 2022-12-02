@@ -22,6 +22,7 @@ const arrayify = <T>(list: CSSRuleList | any[]) => {
   return [].slice.call(list, 0) as T[];
 };
 
+// 拦截 appendChild 方法 ??
 const rawDocumentBodyAppend = HTMLBodyElement.prototype.appendChild;
 
 export class ScopedCSS {
@@ -33,28 +34,39 @@ export class ScopedCSS {
 
   constructor() {
     const styleNode = document.createElement('style');
+    // body中增加 style 节点。只有添加到 document 中才能获取styleNode 的 sheet 属性
     rawDocumentBodyAppend.call(document.body, styleNode);
 
     this.swapNode = styleNode;
+    // style的sheet属性
     this.sheet = styleNode.sheet!;
     this.sheet.disabled = true;
   }
 
   process(styleNode: HTMLStyleElement, prefix: string = '') {
     if (styleNode.textContent !== '') {
+      // 以子应用 style 下的内容创建文本节点
       const textNode = document.createTextNode(styleNode.textContent || '');
+      // 文本节点添加到 新创建的 style 中
       this.swapNode.appendChild(textNode);
+      // 获取 sheet
       const sheet = this.swapNode.sheet as any; // type is missing
+      // cssRules 类数组转成真数组
       const rules = arrayify<CSSRule>(sheet?.cssRules ?? []);
+      // css 添加前缀
       const css = this.rewrite(rules, prefix);
       // eslint-disable-next-line no-param-reassign
+
+      // 设置 css
       styleNode.textContent = css;
 
       // cleanup
+      // 只清空了 style 的内容，为什么不直接删除style节点呢，留着有啥用？因为ScopedCss是单例模式，如果删除style，在process方法中就获取不到 this.swapNode
       this.swapNode.removeChild(textNode);
       return;
     }
 
+    // 监听style节点，如果 childList 变化了，重新获取添加前缀
     const mutator = new MutationObserver((mutations) => {
       for (let i = 0; i < mutations.length; i += 1) {
         const mutation = mutations[i];
@@ -185,6 +197,7 @@ export const process = (
   appName: string,
 ): void => {
   // lazy singleton pattern
+  // 单例模式 document.body 下只创建一个style标签用于处理css前缀
   if (!processor) {
     processor = new ScopedCSS();
   }
@@ -201,7 +214,9 @@ export const process = (
   const tag = (mountDOM.tagName || '').toLowerCase();
 
   if (tag && stylesheetElement.tagName === 'STYLE') {
+    // 子应用根结点的前缀 div[data-name="sub-app"]
     const prefix = `${tag}[${QiankunCSSRewriteAttr}="${appName}"]`;
+    // stylesheetElement: style节点
     processor.process(stylesheetElement, prefix);
   }
 };

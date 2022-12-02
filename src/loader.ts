@@ -102,8 +102,9 @@ function createElement(
     }
   }
 
+  // 作用域css 添加前缀
   if (scopedCSS) {
-    const attr = appElement.getAttribute(css.QiankunCSSRewriteAttr);
+    const attr = appElement.getAttribute(css.QiankunCSSRewriteAttr /* 'data-qiankun' */); // 子应用name
     if (!attr) {
       appElement.setAttribute(css.QiankunCSSRewriteAttr, appInstanceId);
     }
@@ -140,6 +141,7 @@ function getAppWrapperGetter(
     const element = elementGetter();
     assertElementExist(element, `Wrapper element for ${appInstanceId} is not existed!`);
 
+    // @ts-ignore
     if (strictStyleIsolation && supportShadowDOM) {
       return element!.shadowRoot!;
     }
