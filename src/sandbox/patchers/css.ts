@@ -7,7 +7,9 @@
 enum RuleType {
   // type: rule will be rewrote
   STYLE = 1,
+  // @media
   MEDIA = 4,
+  // @supports
   SUPPORTS = 12,
 
   // type: value will be kept
@@ -38,7 +40,7 @@ export class ScopedCSS {
     rawDocumentBodyAppend.call(document.body, styleNode);
 
     this.swapNode = styleNode;
-    // style的sheet属性
+    // style.sheet
     this.sheet = styleNode.sheet!;
     this.sheet.disabled = true;
   }
@@ -129,9 +131,10 @@ export class ScopedCSS {
     const selector = rule.selectorText.trim();
 
     let { cssText } = rule;
-    // handle html { ... }
+    // handle html { ... } --> div[data-qiankun="sub-app"] { ... }
     // handle body { ... }
     // handle :root { ... }
+    // 全部替换成子应用的根节点
     if (selector === 'html' || selector === 'body' || selector === ':root') {
       return cssText.replace(rootSelectorRE, prefix);
     }
